@@ -85,7 +85,25 @@ int main(int argc, const char* argv[]){
 
         switch(op){
             case OP_ADD:
-                //add
+                //Destination
+                uint16_t DR = (instr >> 9) & 0x7;
+
+                //1st operand
+                uint16_t OP1 = (instr >> 6) & 0x7;
+
+                uint16_t immed_flag = (instr >> 5) & 0x1;
+
+                if(immed_flag){
+                    uint16_t imm5 = sign_extend(instr & 0x1F, 5);
+                    reg[DR] = reg[OP1] + imm5;
+                }
+                else{
+                    uint16_t OP2 = (instr) & 0x7;
+                    reg[DR] = reg[OP1] + reg[OP2];
+                }
+
+                update_flags(DR);
+
                 break;
             case OP_AND:
                 //and
@@ -134,6 +152,27 @@ int main(int argc, const char* argv[]){
         }
     }
 }
+
+uint16_t sign_extend(uint16_t x, int bit_cnt){
+    if ((x >> (bit_cnt - 1)) & 1){
+        x |= (0xFFFF << bit_cnt);
+    }
+    return x;
+}
+
+void update_flags(uint16_t i){
+    if(reg[i] == 0){
+        reg[R_COND] = FL_ZRO;
+    }
+    else if(reg[i] >> 15){
+        reg[R_COND] = FL_NEG;
+    }
+    else{
+        reg[R_COND] = FL_POS;
+    }
+}
+
+
 
 
 
