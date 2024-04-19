@@ -85,6 +85,7 @@ int main(int argc, const char* argv[]){
 
         switch(op){
             case OP_ADD:
+
                 //Destination
                 uint16_t DR = (instr >> 9) & 0x7;
 
@@ -106,7 +107,23 @@ int main(int argc, const char* argv[]){
 
                 break;
             case OP_AND:
-                //and
+                
+                uint16_t DR = (instr >> 9) & 0x7;
+                uint16_t OP1 = (instr >> 6) & 0x7;
+
+                uint16_t immed_flag = (instr >> 5) & 0x1;
+
+                if(immed_flag){
+                    uint16_t imm5 = sign_extend(instr & 0x1F, 5);
+                    reg[DR] = reg[OP1] & imm5;
+                }
+                else{
+                    uint16_t OP2 = instr & 0x7;
+                    reg[DR] = reg[OP1] & reg[OP2];
+                }
+
+                update_flags(DR);
+                
                 break;
             case OP_NOT:
                 //not
@@ -124,7 +141,18 @@ int main(int argc, const char* argv[]){
                 //ld
                 break;
             case OP_LDI:
-                //ldi
+
+                //Destination
+                uint16_t DR = (instr >> 9) & 0x7;
+
+                //PC Offset
+                uint16_t pc_off = sign_extend(instr & 0x1FF, 9);
+
+                //Add pc off to current pc
+                reg[DR] = mem_read(mem_read(reg[R_PC] + pc_off));
+
+                update_flags(DR);
+
                 break;
             case OP_LDR:
                 //ldr
